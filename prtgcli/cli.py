@@ -45,6 +45,8 @@ class CliResponse(object):
                     item.__setattr__(key, str(value))
 
         self.columns = list(columns)
+        # TODO: Better filtering
+        self.columns = [x for x in self.columns if not any([x == 'active', x == 'type'])]
         self.columns.sort()
 
     def _csv(self):
@@ -105,6 +107,7 @@ def get_args():
     parser.add_argument('-r', '--regex', help='Filter by regular expression', default=None)
     parser.add_argument('-a', '--attribute', help='Specify the attribute to match', default=None)
     parser.add_argument('-u', '--update', help='Update the specified attribute', default=None)
+    parser.add_argument('-rp', '--replace', help='Replace tags', action='store_true')
     parser.add_argument('--commit', help='Commit changes to PRTG', default=None)
     return parser.parse_args()
 
@@ -117,7 +120,7 @@ def main():
 
     args = get_args()
 
-    logging.basicConfig(level='DEBUG')
+    logging.basicConfig(level=args.level)
 
     endpoint, username, password = load_config()
 
@@ -125,8 +128,7 @@ def main():
 
     if args.command == 'refresh':
         logging.warning('Refreshing PRTG content cache..')
-        client.refresh(content='devices')
-        client.refresh(content='sensors')
+        client.refresh(content=args.content)
 
     if args.command == 'ls':
         content = client.content(args.content, parents=args.parents, regex=args.regex, attribute=args.attribute)
@@ -136,7 +138,7 @@ def main():
     if args.command == 'update':
         attribute, value = args.update.split('=')
         content = client.content(args.content, parents=args.parents, regex=args.regex, attribute=args.attribute)
-        client.update(content=content, attribute=attribute, value=value)
+        client.update(content=content, attribute=attribute, value=value, replace=args.replace)
 
     if args.command == 'commit':
         pass
