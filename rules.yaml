@@ -1,0 +1,11 @@
+rules:
+  -
+    attribute: name
+    pattern: "^adstack.*"
+    prop: tags
+    update: True
+    value:
+      - some
+      - new
+      - tags
+      - here
